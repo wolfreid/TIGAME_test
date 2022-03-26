@@ -344,6 +344,7 @@ async def users(message: types.Message):
        user_name = msg.from_user.full_name
        user_id = msg.from_user.id
        balance = cursor.execute("SELECT balance from users where user_id = ?",(message.from_user.id,)).fetchone()
+       status  = cursor.execute("SELECT status from users where user_id = ?",(message.from_user.id,)).fetchone() #add status
        bank = cursor.execute("SELECT bank from users where user_id = ?",(message.from_user.id,)).fetchone()
        games = cursor.execute("SELECT games from users where user_id = ?",(message.from_user.id,)).fetchone()
        bitcoin = cursor.execute("SELECT bitcoin from users where user_id = ?",(message.from_user.id,)).fetchone()
