@@ -10,17 +10,17 @@ from time import gmtime
 from time import strptime
 from decimal import Decimal
 from aiogram.utils.callback_data import CallbackData
-# import bot_gui
-# from bot_gui import cmd_start
+
 # from filters import IsAdminFilter
 
 logging.basicConfig(level=logging.INFO)
-# active_bot =[] 
+
 # bot init
 #bot = Bot(token='5123414660:AAHk8PxHEztznIuRMXNNlAN2ZzFIdcj8hhg')
 bot = Bot(token='5287614807:AAEhFJW9kHAPSCnQuILjpDljK7k82ItKwQQ')
 dp = Dispatcher(bot)
 cb_options = CallbackData("post","button","user","ui")
+
 # admin filters
 #dp.filters_factory.bind(IsAdminFilter)
 
