@@ -9,15 +9,18 @@ from aiogram.utils.markdown import quote_html
 from time import gmtime
 from time import strptime
 from decimal import Decimal
+from aiogram.utils.callback_data import CallbackData
+# import bot_gui
+# from bot_gui import cmd_start
 # from filters import IsAdminFilter
 
 logging.basicConfig(level=logging.INFO)
-
+# active_bot =[] 
 # bot init
 #bot = Bot(token='5123414660:AAHk8PxHEztznIuRMXNNlAN2ZzFIdcj8hhg')
 bot = Bot(token='5287614807:AAEhFJW9kHAPSCnQuILjpDljK7k82ItKwQQ')
 dp = Dispatcher(bot)
-
+cb_options = CallbackData("post","button","user","ui")
 # admin filters
 #dp.filters_factory.bind(IsAdminFilter)
 
@@ -142,6 +145,8 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS bot(
 
 ###########################################СТАРТОВАЯ КОМАНДА###########################################
 # start command
+
+
 @dp.message_handler(commands=['start'])
 async def start_cmd(message):
     msg = message
@@ -163,6 +168,37 @@ async def start_cmd(message):
     photo = open('start.jpg', 'rb')
     name1 = message.from_user.get_mention(as_html=True)
     await message.bot.send_photo(chat_id=message.chat.id, photo=photo, caption=f'👋 Привет, {name1} \nЯ  BOT для игры в различные игры.\nТебе выдан подарок в размере 1.000.000.000$.\nТак же ты можешь добавить меня в беседу для игры с друзьями.\n🆘 Чтобы узнать все команды введи "Помощь"', parse_mode='html')
+
+
+@dp.message_handler(commands=['Помощь','help'],commands_prefix='!?./')
+async def gui_main(message: types.Message):
+    msg = message
+    user = msg.from_user.get_mention('Игрок',as_html=True)
+    user_link = msg.from_user.first_name
+   
+    buttons = [
+    types.InlineKeyboardButton(text="Основное", callback_data=cb_options.new(button = "activity",user = user_link,ui = 'head')),
+    types.InlineKeyboardButton(text="Игры", callback_data =cb_options.new(button = "games",user = user_link,ui = 'head')),
+    types.InlineKeyboardButton(text="Развлекательное", callback_data=cb_options.new(button = "fun",user = user_link, ui = 'head'))
+    ]
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    keyboard.add(*buttons)
+    text = f"{user},выберите категорию:\n  1️⃣ Основное\n  2️⃣ Игры\n  3️⃣ Развлекательное \n\n 🆘 По всем вопросам - @bacarty"
+    await message.answer(text, reply_markup=keyboard, parse_mode='html')
+
+
+@dp.callback_query_handler(cb_options.filter(ui =['head'] ))
+async def option(call:types.CallbackQuery,callback_data:dict):
+   button = callback_data["button"]
+   user = callback_data["user"]
+   if button == 'activity':  
+      await bot.send_message(call.message.chat.id, f"@{user}, комманды менеджмента ресурсов:  \n💡 Разное:\n   📒 Профиль/профиль\n   💸 Б/Баланс\n   👨 Ник - узнать ник   \n  🏦 Банк/снять/положить [сумма]\n  🤝 Дать/дать [сумма] [команда работает ответом на сообщение]\n   💎 Топ\n   💈 Ежедневный бонус\n  💻 Работать\n   🚗 Мой гараж - узнать о своих машинах\n   📦 Беседа - вступить официальную беседу BCR\n\n  Магазин"   , parse_mode='html')
+   elif button == 'games':
+      await bot.send_message(call.message.chat.id, f"@{user}, игровые комманды:  \n💡 🚀 Игры:\n 🎮 Спин [ставка]\n 🎰 Казино [ставка]\n   🎲 Чётное/Нечётное [ставка]\n   🏎 Гонки [ставка]\n   ⚔️ Бой [ставка]\n   📦 Кейсы\n\n💭 РП-команды - вывести список РП-команд\n---------------\n💥", parse_mode='html')
+   elif button == 'fun':  
+      await bot.send_message(call.message.chat.id, f"@{user}, развлекательные комманды:  \n💡💥 Развлекатетельное:\n   🔮 Шар\n   🧿 Шанс\n---------------\n💈 Модерация чатов:\n   🔇 .мут [время]\n   🔈 .размут\n   🛑 .бан\n   ✅ .разбан\n\n💻Донат - купить Админ/валюту", parse_mode='html')
+   await bot.answer_callback_query(call.id)
+      
 
 @dp.message_handler(commands=['мут', 'mute'], commands_prefix='!?./', is_chat_admin=True)
 async def mute(message):
@@ -729,11 +765,12 @@ async def users(message: types.Message):
        chat_id = message.chat.id
        name_user = message.from_user.get_mention(as_html=True)
        ivent = cursor.execute("SELECT ivent from bot").fetchone()
+      #  await cmd_start(message)
        ivent = int(ivent[0])
        if ivent == 1:
-          await bot.send_message(chat_id, f"{name_user} , мои команды:  \n💡 Разное:\n   📒 Профиль/профиль\n   💸 Б/Баланс\n   👨 Ник - узнать ник   \n  🏦 Банк/снять/положить [сумма]\n  🤝 Дать/дать [сумма] [команда работает ответом на сообщение]\n   💎 Топ\n   💈 Ежедневный бонус\n  💻 Работать\n   🚗 Мой гараж - узнать о своих машинах\n   📦 Беседа - вступить официальную беседу BCR\n\n  Магазин   \n---------------\n🚀 Игры:\n 🎮 Спин [ставка]\n 🎰 Казино [ставка]\n   🎲 Чётное/Нечётное [ставка]\n   🏎 Гонки [ставка]\n   ⚔️ Бой [ставка]\n\n💭 РП-команды - вывести список РП-команд\n---------------\n💥 Развлекатетельное:\n   🔮 Шар\n   🧿 Шанс\n---------------\n💈 Модерация чатов:\n   🔇 .мут [время]\n   🔈 .размут\n   🛑 .бан\n   ✅ .разбан\n\n💻Донат - купить Админ/валюту", parse_mode='html')
+          await bot.send_message(chat_id, f"{name_user} , мои команды:  \n💡 Разное:\n   📒 Профиль/профиль\n   💸 Б/Баланс\n   👨 Ник - узнать ник   \n  🏦 Банк/снять/положить [сумма]\n  🤝 Дать/дать [сумма] [команда работает ответом на сообщение]\n   💎 Топ\n   💈 Ежедневный бонус\n  💻 Работать\n   🚗 Мой гараж - узнать о своих машинах\n   📦 Беседа - вступить официальную беседу BCR\n\n  Магазин   \n---------------\n🚀 Игры:\n 🎮 Спин [ставка]\n 🎰 Казино [ставка]\n   🎲 Чётное/Нечётное [ставка]\n   🏎 Гонки [ставка]\n   ⚔️ Бой [ставка]\n   📦 Кейсы\n\n💭 РП-команды - вывести список РП-команд\n---------------\n💥 Развлекатетельное:\n   🔮 Шар\n   🧿 Шанс\n---------------\n💈 Модерация чатов:\n   🔇 .мут [время]\n   🔈 .размут\n   🛑 .бан\n   ✅ .разбан\n\n💻Донат - купить Админ/валюту", parse_mode='html')
        if ivent == 0:
-          await bot.send_message(chat_id, f"{name_user} , мои команды:  \n💡 Разное:\n   📒 Профиль/профиль\n   💸 Б/Баланс\n   👨 Ник - узнать ник   \n  🏦 Банк/снять/положить [сумма]\n  🤝 Дать/дать [сумма] [команда работает ответом на сообщение]\n   💎 Топ\n   💈 Ежедневный бонус\n  💻 Работать\n   🚗 Мой гараж - узнать о своих машинах\n   📦 Беседа - вступить официальную беседу TIGLACK\n\n  Магазин  \n---------------\n🚀 Игры:\n   🎮 Спин [ставка]\n   🎰 Казино [ставка]\n   🎲 Чётное/Нечётное [ставка]\n   🏎 Гонки [ставка]\n   ⚔️ Бой [ставка]\n\n💭 РП-команды - вывести список РП-команд\n---------------\n💥 Развлекатетельное:\n   🔮 Шар\n   🧿 Шанс\n---------------\n💈 Модерация чатов:\n   🔇 .мут [время]\n   🔈 .размут\n   🛑 .бан\n   ✅ .разбан\n\n💻Донат - купить Админ/валюту", parse_mode='html')
+          await bot.send_message(chat_id, f"{name_user} , мои команды:  \n💡 Разное:\n   📒 Профиль/профиль\n   💸 Б/Баланс\n   👨 Ник - узнать ник   \n  🏦 Банк/снять/положить [сумма]\n  🤝 Дать/дать [сумма] [команда работает ответом на сообщение]\n   💎 Топ\n   💈 Ежедневный бонус\n  💻 Работать\n   🚗 Мой гараж - узнать о своих машинах\n   📦 Беседа - вступить официальную беседу TIGLACK\n\n  Магазин  \n---------------\n🚀 Игры:\n   🎮 Спин [ставка]\n   🎰 Казино [ставка]\n   🎲 Чётное/Нечётное [ставка]\n   🏎 Гонки [ставка]\n   ⚔️ Бой [ставка]\n   📦 Кейсы\n\n💭 РП-команды - вывести список РП-команд\n---------------\n💥 Развлекатетельное:\n   🔮 Шар\n   🧿 Шанс\n---------------\n💈 Модерация чатов:\n   🔇 .мут [время]\n   🔈 .размут\n   🛑 .бан\n   ✅ .разбан\n\n💻Донат - купить Админ/валюту", parse_mode='html')
 
     if message.text.startswith("шар"):
        chat_id = message.chat.id
@@ -771,7 +808,7 @@ async def users(message: types.Message):
 
     if message.text.lower() in ["донат", "Донат"]:
        user_name = message.from_user.get_mention(as_html=True)
-       await bot.send_message(message.chat.id, f"💎 | {user_name}, список доната:\n\n 🛠 Aдмин - 250р/месяц\n🛠 Админ статус - 150р/месяц\n 🛒 По поводу покупки писать: @timchik_blvck", parse_mode='html')
+       await bot.send_message(message.chat.id, f"💎 | {user_name}, список доната:\n\n 🛠 Aдмин - 250р/месяц\n🛠 Админ статус - 150р/месяц\n 🛒 По поводу покупки писать: @bacarty", parse_mode='html')
 
  # casino
 
@@ -1551,7 +1588,7 @@ async def users(message: types.Message):
                   
                 if str(re3) == '🖕':
                                await bot.send_message(chat_id, f'🎉 | {name1} \n|{re1}|{re2}|{re3}|  Удача не на твоей стороне. Выигрыш: 0$ {rloser}', parse_mode='html')
-                               сursor.execute(f'UPDATE users SET balance = {balance - summ} WHERE user_id = "{user_id}"')
+                               cursor.execute(f'UPDATE users SET balance = {balance - summ} WHERE user_id = "{user_id}"')
                                cursor.execute(f'UPDATE users SET games = {games + 1} WHERE user_id = "{user_id}"')
                                cursor.execute(f'UPDATE bot SET last_stavka=? WHERE chat_id=?', (time.time(), chat_id,))
                                connect.commit() 
@@ -1834,7 +1871,7 @@ async def users(message: types.Message):
                   
                 if str(re3) == '🖕':
                                await bot.send_message(chat_id, f'🎉 | {name1} \n|{re1}|{re2}|{re3}|  Удача не на твоей стороне. Выигрыш: 0$ {rloser}', parse_mode='html')
-                               сursor.execute(f'UPDATE users SET balance = {balance - summ} WHERE user_id = "{user_id}"')
+                               cursor.execute(f'UPDATE users SET balance = {balance - summ} WHERE user_id = "{user_id}"')
                                cursor.execute(f'UPDATE users SET games = {games + 1} WHERE user_id = "{user_id}"')
                                cursor.execute(f'UPDATE bot SET last_stavka=? WHERE chat_id=?', (time.time(), chat_id,))
                                connect.commit() 
@@ -3676,7 +3713,7 @@ async def users(message: types.Message):
 ###########################################БЕСЕДА#########################################
     if message.text.lower() in ["беседа", "Беседа"]:
        user_name = message.from_user.get_mention(as_html=True)
-       await bot.send_message(message.chat.id, f"💎 | {user_name}, официальная беседа бота TIGLACK:\n@TIGLACK_CHAT", parse_mode='html')
+       await bot.send_message(message.chat.id, f"💎 | {user_name}, официальная беседа бота TIGLACK:\n@bacarty_444", parse_mode='html')
 
 ###########################################ЭКОНОМИКА###########################################
     # perevod        
@@ -7391,7 +7428,7 @@ async def users(message: types.Message):
           await bot.send_message(message.chat.id, f"ℹ️ | {user_name}, вы уже работали недавно, приходите через час! {rloser}", parse_mode='html')
 
 ###########################################КЕЙСЫ###########################################
-    if message.text.lower() in ["sdhfg", "gfsdhfgk"]:
+    if message.text.lower() in ["кейсы", "Кейсы"]:
        user_name = message.from_user.get_mention(as_html=True)
        case1 = cursor.execute("SELECT case1 from users where user_id = ?",(message.from_user.id,)).fetchone()
        case2 = cursor.execute("SELECT case2 from users where user_id = ?",(message.from_user.id,)).fetchone()
